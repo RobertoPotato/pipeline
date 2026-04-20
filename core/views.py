@@ -88,3 +88,20 @@ class TenantSettingsView(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.tenant
+
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
+
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'email']
+    template_name = 'account/profile.html'
+    success_url = reverse_lazy('profile')
+    
+    def get_object(self, queryset=None):
+        return self.request.user
+
+class CustomPasswordChangeView(LoginRequiredMixin, SuccessMessageMixin, PasswordChangeView):
+    template_name = 'account/password_change.html'
+    success_url = reverse_lazy('profile')
+    success_message = "Your password was changed successfully."

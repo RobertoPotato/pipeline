@@ -137,6 +137,19 @@ class PipelineSegmentViewSet(TenantQuerysetMixin, viewsets.ModelViewSet):
                 segment.current_pressure = ser.validated_data['pressure']
                 update_fields.append('current_pressure')
             segment.save(update_fields=update_fields)
+            
+            # Create Telemetry Snapshot
+            from telemetry.models import SegmentTelemetry
+            design_capacity = 5000.0 # BPH - Assume a default or add to model
+            util = (segment.current_flow_rate / design_capacity) * 100 if design_capacity > 0 else 0
+            
+            SegmentTelemetry.objects.create(
+                segment=segment,
+                flow_rate=segment.current_flow_rate,
+                daily_volume=segment.current_flow_rate * 0.1, # Dummy incremental volume for demo
+                capacity_utilization=min(100, util),
+                operating_pressure=segment.current_pressure,
+            )
             updated += 1
 
         ApiIngestionLog.objects.create(
@@ -263,4 +276,15 @@ class PipelineDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['batches'] = self.object.active_batches.all()
+        
+        telemetry = list(self.object.telemetry.all().order_by('timestamp')[:48]) # Last 48 points
+        
+        import json
+        context['chart_labels'] = json.dumps([t.timestamp.strftime('%H:%M') for t in telemetry])
+        context['chart_data'] = json.dumps([t.daily_volume for t in telemetry])
+        
+        latest = telemetry[-1] if telemetry else None
+        context['current_utilization'] = latest.capacity_utilization if latest else 0
+        context['current_flow'] = latest.flow_rate if latest else 0
+        
         return context
