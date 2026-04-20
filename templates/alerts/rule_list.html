@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Alerting Rules</h1>
+            <p class="text-slate-500 text-sm">Manage automated thresholds and notification rules</p>
+        </div>
+        <a href="{% url 'alert_rule_add' %}" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all">Add New Rule</a>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Rule Name</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity Type</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Condition</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <th class="px-6 py-4 text-right"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for rule in rules %}
+                <tr class="hover:bg-slate-50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-700">{{ rule.name }}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">{{ rule.metric }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">{{ rule.entity_type }}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-slate-600">
+                        {{ rule.condition }} {{ rule.threshold }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 {% if rule.is_active %}text-green-600{% else %}text-slate-400{% endif %} font-bold">
+                            <span class="w-1.5 h-1.5 rounded-full {% if rule.is_active %}bg-green-500{% else %}bg-slate-400{% endif %}"></span>
+                            {{ rule.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="text-slate-300 hover:text-primary transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">No alert rules found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tenant_name }} | PipelineGuard</title>
+    
+    <!-- Meta for SEO/Branding -->
+    <meta name="theme-color" content="{{ primary_color }}">
+    {% if tenant_favicon %}<link rel="icon" type="image/x-icon" href="{{ tenant_favicon }}">{% endif %}
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        :root {
+            --primary: {{ primary_color }};
+            --secondary: {{ secondary_color }};
+        }
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '{{ primary_color }}',
+                        secondary: '{{ secondary_color }}',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- JS Libraries -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full overflow-hidden flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between z-50">
+        <div class="flex items-center gap-4">
+            {% if tenant_logo %}
+                <img src="{{ tenant_logo }}" alt="{{ tenant_name }}" class="h-8 w-auto">
+            {% else %}
+                <div class="bg-primary text-white p-1.5 rounded-lg font-bold text-xl uppercase tracking-tighter">PG</div>
+            {% endif %}
+            <span class="font-bold text-slate-800 text-lg hidden md:block">{{ tenant_name }} <span class="text-slate-400 font-medium">PipelineGuard</span></span>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <!-- Nav Links -->
+            <div class="hidden lg:flex items-center gap-1">
+                <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'dashboard' %}bg-slate-100 text-primary{% endif %}">Dashboard</a>
+                <a href="{% url 'pipeline_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'pipeline_list' %}bg-slate-100 text-primary{% endif %}">Pipelines</a>
+                <a href="{% url 'tank_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'tank_list' %}bg-slate-100 text-primary{% endif %}">Tanks</a>
+                <a href="{% url 'batch_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'batch_list' %}bg-slate-100 text-primary{% endif %}">Batches</a>
+            </div>
+
+            <!-- Notifications -->
+            <div class="relative" x-data="{ open: false }">
+                <a href="{% url 'notification_list' %}" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full relative block">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                </a>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="relative flex items-center gap-3 pl-4 border-l border-slate-200" x-data="{ open: false }">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-slate-800">{{ user.username }}</div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ user.role }}</div>
+                </div>
+                <button @click="open = !open" class="h-9 w-9 bg-slate-200 rounded-full border-2 border-white overflow-hidden shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" alt="User">
+                </button>
+                
+                <div x-show="open" @click.away="open = false" class="absolute right-0 top-12 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50">
+                    <a href="/accounts/profile/" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Your Profile</a>
+                    <a href="{% url 'tenant_settings' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Settings</a>
+                    <hr class="my-2 border-slate-100">
+                    <form method="post" action="/accounts/logout/">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign Out</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto relative">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

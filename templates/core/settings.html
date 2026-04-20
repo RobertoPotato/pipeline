@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6 max-w-5xl mx-auto space-y-10 pb-20">
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Organization Settings</h1>
+        <p class="text-slate-500 text-sm">Manage your branding, operational rules, and pipeline alerts.</p>
+    </div>
+
+    <!-- Branding Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div>
+            <h3 class="text-lg font-bold text-slate-800">Branding & AI</h3>
+            <p class="text-sm text-slate-500">Configure your company identity seen by all operators.</p>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+                <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                            {% if field.name != 'is_active' %} {# We use manual layout #}
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button type="submit" class="bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+                            Save Branding Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <hr class="border-slate-200">
+
+    <!-- Alerting Rules Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div>
+            <h3 class="text-lg font-bold text-slate-800">Alerting Rules</h3>
+            <p class="text-sm text-slate-500">Define thresholds for automated system notifications.</p>
+            <a href="{% url 'alert_rule_add' %}" class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Create New Rule
+            </a>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="divide-y divide-slate-100">
+                    {% for rule in alert_rules %}
+                    <div class="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-bold text-slate-800">{{ rule.name }}</span>
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-black uppercase rounded">{{ rule.entity_type }}</span>
+                            </div>
+                            <p class="text-xs text-slate-500">{{ rule.metric }} {{ rule.condition }} {{ rule.threshold }}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <!-- Toggle switch (visual only for now) -->
+                            <div class="w-10 h-5 bg-primary rounded-full relative shadow-inner">
+                                <div class="absolute right-0.5 top-0.5 h-4 w-4 bg-white rounded-full shadow-sm"></div>
+                            </div>
+                            <button class="text-slate-400 hover:text-red-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-10 text-center text-slate-400 italic text-sm">No alerting rules defined.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
