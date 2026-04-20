@@ -105,3 +105,18 @@ class CustomPasswordChangeView(LoginRequiredMixin, SuccessMessageMixin, Password
     template_name = 'account/password_change.html'
     success_url = reverse_lazy('profile')
     success_message = "Your password was changed successfully."
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@require_POST
+def toggle_theme(request):
+    user = request.user
+    new_theme = request.POST.get('theme')
+    if new_theme in ['light', 'dark']:
+        user.theme_preference = new_theme
+        user.save(update_fields=['theme_preference'])
+        return JsonResponse({'status': 'success', 'theme': user.theme_preference})
+    return JsonResponse({'status': 'error'}, status=400)

@@ -8,7 +8,7 @@
             {{ user.username|first|upper }}
         </div>
         <div>
-            <h1 class="text-3xl font-black text-slate-800">{{ user.username }}</h1>
+            <h1 class="text-3xl font-black text-slate-800 dark:text-white">{{ user.username }}</h1>
             <p class="text-slate-500 font-medium">Logged in as <span class="text-primary font-bold">{{ user.role }}</span> at {{ request.tenant.name }}</p>
         </div>
     </div>
@@ -18,11 +18,11 @@
         <div class="space-y-4">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">Account Actions</h3>
             <div class="space-y-2">
-                <a href="{% url 'profile' %}" class="flex items-center gap-3 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-primary shadow-sm">
+                <a href="{% url 'profile' %}" class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-primary shadow-sm transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     Profile Details
                 </a>
-                <a href="{% url 'password_change' %}" class="flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-white hover:border-slate-200 border border-transparent rounded-2xl text-sm font-bold transition-all">
+                <a href="{% url 'password_change' %}" class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700 border border-transparent rounded-2xl text-sm font-bold transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     Change Password
                 </a>
@@ -31,13 +31,13 @@
 
         <!-- Main Form -->
         <div class="md:col-span-2">
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-100 p-8">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-100 dark:shadow-none p-8 transition-colors">
                 <form method="POST" class="space-y-6">
                     {% csrf_token %}
                     <div class="space-y-6">
                         {% for field in form %}
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ field.label }}</label>
+                            <label class="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{{ field.label }}</label>
                             <div class="relative">
                                 {{ field }}
                                 {% if field.errors %}
@@ -48,7 +48,7 @@
                         {% endfor %}
                     </div>
                     
-                    <div class="pt-6 border-t border-slate-50 flex justify-end">
+                    <div class="pt-6 border-t border-slate-50 dark:border-slate-700 flex justify-end">
                         <button type="submit" class="bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-105 transition-all">
                             Save Profile Changes
                         </button>
@@ -70,11 +70,20 @@
         font-weight: 500;
         transition: all 0.2s;
     }
+    .dark input {
+        background-color: #0f172a;
+        border-color: #1e293b;
+        color: white;
+    }
     input:focus {
         outline: none;
         border-color: var(--primary);
         background-color: #fff;
         box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 15, 23, 42), 0.05);
+    }
+    .dark input:focus {
+        background-color: #1e293b;
+        border-color: var(--primary);
     }
 </style>
 {% endblock %}

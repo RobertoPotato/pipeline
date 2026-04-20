@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="en" class="h-full {% if user.theme_preference == 'dark' %}dark{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +38,7 @@
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -56,7 +57,25 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full overflow-hidden flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' x-data="{ mobileMenuOpen: false }">
+<body class="h-full overflow-hidden flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300" 
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+      x-data="{ 
+        mobileMenuOpen: false, 
+        darkMode: {% if user.theme_preference == 'dark' %}true{% else %}false{% endif %},
+        init() {
+            this.$watch('darkMode', val => {
+                document.documentElement.classList.toggle('dark', val);
+                fetch('{% url 'toggle_theme' %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'theme=' + (val ? 'dark' : 'light')
+                }).then(res => {
+                    if (!res.ok) console.error('Failed to sync theme');
+                });
+            });
+            document.documentElement.classList.toggle('dark', this.darkMode);
+        }
+      }">
     
     <!-- Mobile Sidebar Overlay -->
     <div x-show="mobileMenuOpen" 
@@ -77,16 +96,16 @@
          x-transition:leave="transition ease-in duration-200 transform"
          x-transition:leave-start="translate-x-0"
          x-transition:leave-end="-translate-x-full"
-         class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-[101] lg:hidden flex flex-col">
+         class="fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-800 shadow-2xl z-[101] lg:hidden flex flex-col">
         
-        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 {% if tenant_logo %}
                     <img src="{{ tenant_logo }}" alt="{{ tenant_name }}" class="h-8 w-auto">
                 {% else %}
                     <div class="bg-primary text-white p-1.5 rounded-lg font-bold text-xl uppercase tracking-tighter">PG</div>
                 {% endif %}
-                <span class="font-bold text-slate-800 tracking-tight">PipelineGuard</span>
+                <span class="font-bold text-slate-800 dark:text-white tracking-tight">PipelineGuard</span>
             </div>
             <button @click="mobileMenuOpen = false" class="p-2 text-slate-400 hover:text-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18"></path></svg>
@@ -94,26 +113,26 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-2">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' %}bg-primary/10 text-primary{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'dashboard' %}bg-primary/10 text-primary{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 Dashboard
             </a>
-            <a href="{% url 'pipeline_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'pipeline_list' %}bg-primary/10 text-primary{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <a href="{% url 'pipeline_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'pipeline_list' %}bg-primary/10 text-primary{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 Pipelines
             </a>
-            <a href="{% url 'tank_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'tank_list' %}bg-primary/10 text-primary{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <a href="{% url 'tank_list' %}" class="flex items-center gap-3 px-4 py-2 text-sm font-bold {% if request.resolver_match.url_name == 'tank_list' %}bg-primary/10 text-primary{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4a1 1 0 011-1h5a1 1 0 011 1v3M6 7h1m1 4h1m4-10V4a1 1 0 011-1h5a1 1 0 011 1v3"></path></svg>
                 Tanks
             </a>
-            <a href="{% url 'batch_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'batch_list' %}bg-primary/10 text-primary{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <a href="{% url 'batch_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold {% if request.resolver_match.url_name == 'batch_list' %}bg-primary/10 text-primary{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 Batches
             </a>
         </div>
 
-        <div class="p-6 border-t border-slate-100 bg-slate-50/50">
-            <a href="{% url 'tenant_settings' %}" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-slate-500 hover:text-primary">
+        <div class="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+            <a href="{% url 'tenant_settings' %}" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-slate-500 hover:text-primary transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 Settings
             </a>
@@ -121,10 +140,10 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between z-50">
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-2.5 flex items-center justify-between z-50 transition-colors">
         <div class="flex items-center gap-4">
             <!-- Mobile Menu Toggle -->
-            <button @click="mobileMenuOpen = true" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg lg:hidden">
+            <button @click="mobileMenuOpen = true" class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg lg:hidden">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
 
@@ -133,33 +152,40 @@
             {% else %}
                 <div class="bg-primary text-white p-1.5 rounded-lg font-bold text-xl uppercase tracking-tighter">PG</div>
             {% endif %}
-            <span class="font-bold text-slate-800 text-lg hidden md:block">{{ tenant_name }} <span class="text-slate-400 font-medium">PipelineGuard</span></span>
+            <span class="font-bold text-slate-800 dark:text-white text-lg hidden md:block">{{ tenant_name }} <span class="text-slate-400 font-medium">PipelineGuard</span></span>
         </div>
 
         <div class="flex items-center gap-6">
+            <!-- Theme Toggle -->
+            <button @click="darkMode = !darkMode"
+                    class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-all ring-inset focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <svg x-show="!darkMode" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg x-show="darkMode" class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+
             <!-- Nav Links (Desktop) -->
             <div class="hidden lg:flex items-center gap-1">
-                <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'dashboard' %}bg-slate-100 text-primary{% endif %}">Dashboard</a>
-                <a href="{% url 'pipeline_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'pipeline_list' %}bg-slate-100 text-primary{% endif %}">Pipelines</a>
-                <a href="{% url 'tank_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'tank_list' %}bg-slate-100 text-primary{% endif %}">Tanks</a>
-                <a href="{% url 'batch_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 {% if request.resolver_match.url_name == 'batch_list' %}bg-slate-100 text-primary{% endif %}">Batches</a>
+                <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 {% if request.resolver_match.url_name == 'dashboard' %}bg-slate-100 dark:bg-slate-700 text-primary{% endif %}">Dashboard</a>
+                <a href="{% url 'pipeline_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 {% if request.resolver_match.url_name == 'pipeline_list' %}bg-slate-100 dark:bg-slate-700 text-primary{% endif %}">Pipelines</a>
+                <a href="{% url 'tank_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 {% if request.resolver_match.url_name == 'tank_list' %}bg-slate-100 dark:bg-slate-700 text-primary{% endif %}">Tanks</a>
+                <a href="{% url 'batch_list' %}" class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 {% if request.resolver_match.url_name == 'batch_list' %}bg-slate-100 dark:bg-slate-700 text-primary{% endif %}">Batches</a>
             </div>
 
             <!-- Notifications -->
             <div class="relative" x-data="{ open: false }">
-                <a href="{% url 'notification_list' %}" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full relative block">
+                <a href="{% url 'notification_list' %}" class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full relative block">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
                 </a>
             </div>
 
             <!-- Profile Dropdown -->
-            <div class="relative flex items-center gap-3 pl-4 border-l border-slate-200" x-data="{ open: false }">
+            <div class="relative flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700" x-data="{ open: false }">
                 <div class="text-right hidden sm:block">
-                    <div class="text-sm font-semibold text-slate-800">{{ user.username }}</div>
+                    <div class="text-sm font-semibold text-slate-800 dark:text-white">{{ user.username }}</div>
                     <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{{ user.role }}</div>
                 </div>
-                <button @click="open = !open" class="h-9 w-9 bg-slate-200 rounded-full border-2 border-white overflow-hidden shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
+                <button @click="open = !open" class="h-9 w-9 bg-slate-200 rounded-full border-2 border-white dark:border-slate-700 overflow-hidden shadow-sm hover:ring-2 hover:ring-primary/20 transition-all">
                     <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" alt="User">
                 </button>
                 

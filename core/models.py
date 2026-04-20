@@ -41,6 +41,12 @@ class User(AbstractUser):
     )
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, null=True, blank=True, related_name='users')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='VIEWER')
+    
+    THEME_CHOICES = (
+        ('light', 'Light Mode'),
+        ('dark', 'Dark Mode'),
+    )
+    theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
 
     def __str__(self):
         return f"{self.username} - {self.role}"
