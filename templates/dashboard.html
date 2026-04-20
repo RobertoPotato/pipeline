@@ -152,8 +152,15 @@
 {% block extra_js %}
 <script>
     // Initialize Map - Focused on Kenya
+    const isDark = document.documentElement.classList.contains('dark');
     const map = L.map('map').setView([0.0236, 37.9062], 6);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    
+    // Choose tile layer based on theme
+    const tileLayer = isDark 
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+    L.tileLayer(tileLayer, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 20
@@ -166,7 +173,7 @@
         
         segments.results.forEach(seg => {
             if (seg.geojson_path) {
-                const color = seg.status === 'FLOWING' ? '#22c55e' : '#94a3b8';
+                const color = seg.status === 'FLOWING' ? '#22c55e' : (isDark ? '#475569' : '#94a3b8');
                 L.geoJSON(seg.geojson_path, {
                     style: { color: color, weight: 6, opacity: 0.8 }
                 }).bindPopup(`<b>${seg.name}</b><br>Status: ${seg.status}<br>Pressure: ${seg.current_pressure} PSI`)
@@ -180,8 +187,8 @@
         depots.results.forEach(d => {
             L.circleMarker([d.latitude, d.longitude], {
                 radius: 8,
-                fillColor: "white",
-                color: "#1e293b",
+                fillColor: isDark ? "#1e293b" : "white",
+                color: isDark ? "#3b82f6" : "#1e293b",
                 weight: 3,
                 opacity: 1,
                 fillOpacity: 1
@@ -205,12 +212,12 @@
             if (data.type === 'alert_notification') {
                 const feed = document.getElementById('alarm-feed');
                 const html = `
-                    <div class="p-3 bg-red-50 border border-red-100 rounded-xl space-y-1 animate-pulse">
+                    <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl space-y-1 animate-pulse transition-colors">
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-black text-red-600 uppercase">Critical</span>
-                            <span class="text-[10px] text-red-400">Just now</span>
+                            <span class="text-[10px] font-black text-red-600 dark:text-red-400 uppercase">Critical</span>
+                            <span class="text-[10px] text-red-400 dark:text-red-500">Just now</span>
                         </div>
-                        <p class="text-sm font-medium text-red-800">${data.data.message}</p>
+                        <p class="text-sm font-medium text-red-800 dark:text-red-200">${data.data.message}</p>
                     </div>
                 `;
                 feed.insertAdjacentHTML('afterbegin', html);
